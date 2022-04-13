@@ -25,9 +25,15 @@ void json_comma() {
     }
     json_comma_enabled = true;
 }
+void json_comma_force() {
+    JSON_PRINT(", ");
+}
 void json_value(int value) {
     json_comma();
     JSON_PRINT("%d", value);
+}
+void json_value(char value) {
+    JSON_PRINT("%c", value);
 }
 void json_key_raw(char *key) {
     JSON_PRINT("\"%s\":", key);
@@ -90,6 +96,9 @@ void json_object_end() {
     json_comma_enabled = true;
 }
 
+void json_quote() {
+    JSON_PRINT("\"");
+}
 void json_end(bool force) {
     JSON_PRINT("}");
     json_comma_enabled = false;

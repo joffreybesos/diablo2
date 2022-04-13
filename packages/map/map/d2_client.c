@@ -388,37 +388,84 @@ void dump_map_collision(int width, int height) {
     int maxY = map_max_y();
     int maxX = map_max_x();
     for (int y = 0; y <= maxY; y++) {
-        json_array_start();
-        char last = 'X';
-        int count = 0;
-        int outputCount = 0;
-        int actualCount = 0;
-        for (int x = 0; x < maxX; x++) {
-            char mapVal = map_value(x, y) % 2 ? 'X' : ' ';
-            if (mapVal == last) {
-                count++;
-                continue;
-            }
-
-            if (outputCount == 0 && last == ' ') fprintf(stderr, "-1, ");
-
-            json_value(count);
-            actualCount++;
-            outputCount++;
-            count = 1;
-            last = mapVal;
+        json_quote();
+        char cell;        
+        for (int x = 0; x <= maxX; x++) {
+            cell = map_value(x, y) % 2 ? ' ' : 'X';
+            json_value(cell);
         }
-
-        if (actualCount < maxX) {
-            if (actualCount > 0) {
-                json_value(width - actualCount);
-            }
+        json_quote();
+        if (y < maxY) {  // dont put comma on last line
+            json_comma_force();
         }
-
-        // if (maxX < width) 
-        json_array_end();
     }
 }
+
+
+int checkSurroungPixels(int irow, int icol, int imgWidth, int imgHeight) {
+  int thisPixel = map_value(irow, icol) % 2 ? 1 : 0;
+  if (thisPixel == 0) {
+    // // above row
+    if (irow > 0) {
+        if (icol > 0) {
+            if (map_value(irow - 1, icol - 1) % 2) return 1;
+        }
+        if (map_value(irow - 1, icol) % 2) return 1;
+        if (icol < imgWidth) {
+            if (map_value(irow - 1, icol + 1) % 2) return 1;
+        }
+    }
+
+    // same row
+    if (icol > 0) {
+        if (map_value(irow, icol - 1) % 2) return 1;
+    }
+    if (icol < imgWidth) {
+        if (map_value(irow, icol + 1) % 2) return 1;
+    }
+    // beneath
+    if (irow < imgHeight) {
+        if (icol > 0) {
+            if (map_value(irow + 1, icol - 1) % 2) return 1;
+        }
+        if (map_value(irow + 1, icol) % 2) return 1;
+        if (icol < imgWidth) {
+            if (map_value(irow + 1, icol + 1) % 2) return 1;
+        }
+    }
+    if (irow == imgHeight) {
+        return 1;
+    }  
+    if (icol == imgWidth) {
+        return 1;
+    }  
+  }
+  
+  return 0;
+}
+
+void dump_map_collision_edge(int width, int height) {
+    int maxY = map_max_y();
+    int maxX = map_max_x();
+    for (int y = 0; y <= maxY; y++) {
+        json_quote();
+        char cell;        
+        for (int x = 0; x <= maxX; x++) {
+            // above row
+            int edgeVal = checkSurroungPixels(x, y, maxY, maxX);
+            if (edgeVal == 1) {
+                json_value('X');
+            } else {
+                json_value(' ');
+            }
+        }
+        json_quote();
+        if (y < maxY) {  // dont put comma on last line
+            json_comma_force();
+        }
+    }
+}
+
 /** Get the correct Act for a level */
 int get_act(int levelCode) {
     if (levelCode < 40) return 0;
@@ -521,7 +568,7 @@ int d2_dump_map(int seed, int difficulty, int levelCode, char* argFolder) {
 
     json_array_end();
     json_array_start("map");
-    dump_map_collision(mapWidth, mapHeight);
+    dump_map_collision_edge(mapWidth, mapHeight);
     json_array_end();
     json_end();
     return 0;

@@ -8,7 +8,9 @@ void json_start();
 void json_start(FILE* fp);
 
 void json_comma();
+void json_comma_force();
 void json_value(int value);
+void json_value(char value);
 void json_key_raw(char *key);
 void json_key_value(char *key, int value);
 void json_key_value(char *key, unsigned int value);
@@ -21,6 +23,7 @@ void json_array_end();
 void json_object_start();
 void json_object_start(char *key);
 void json_object_end();
+void json_quote();
 void json_end();
 void json_end(bool force);
 
