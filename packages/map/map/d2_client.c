@@ -433,6 +433,12 @@ int checkSurroungPixels(int irow, int icol, int imgWidth, int imgHeight) {
             if (map_value(irow + 1, icol + 1) % 2) return 1;
         }
     }
+    if (irow == 0) {
+        return 1;
+    }
+    if (icol == 0) {
+        return 1;
+    }
     if (irow == imgHeight) {
         return 1;
     }  
