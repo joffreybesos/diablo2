@@ -482,7 +482,7 @@ int get_act(int levelCode) {
     return -1;
 }
 
-int d2_dump_map(int seed, int difficulty, int levelCode, char* argFolder) {
+int d2_dump_map(int seed, int difficulty, int levelCode, int edge, char* argFolder) {
     LevelTxt *levelData = d2common_get_level_text(gameVersion, levelCode); 
     if (!levelData) return 1;
 
@@ -574,7 +574,11 @@ int d2_dump_map(int seed, int difficulty, int levelCode, char* argFolder) {
 
     json_array_end();
     json_array_start("map");
-    dump_map_collision_edge(mapWidth, mapHeight);
+    if (edge) {
+        dump_map_collision_edge(mapWidth, mapHeight);
+    } else {
+        dump_map_collision(mapWidth, mapHeight);
+    }
     json_array_end();
     json_end();
     return 0;

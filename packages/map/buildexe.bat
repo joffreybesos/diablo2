@@ -10,4 +10,4 @@ docker create -ti --name dummy blacha/diablo2 bash
 docker cp dummy:/build/bin/d2-map.exe ./d2-map.exe
 docker rm -f dummy
 
-d2-map.exe "E:\Dev\d2-mapserver\game" --seed 12345 --difficulty 2 --map 1 --output-folder E:/Dev/diablo2/packages/map/bin
+d2-map.exe "E:/Dev/d2-mapserver/game" --seed 12345 --difficulty 2 --map 1 --edge --output-folder E:/Dev/diablo2/packages/map/bin

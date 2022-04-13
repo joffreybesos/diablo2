@@ -32,12 +32,13 @@ char *CliUsage = "\nUsage:\n"
     "    --act [-a]           Dump a specific act [0: ActI, 1:ActII, 2: ActIII, 3: ActIV, 4: Act5]\n"
     "    --map [-m]           Dump a specific Map [0: Rogue Encampent ...]\n"
     "    --output-folder [-o] Dump JSON files to specific folder\n"
+    "    --edge [-e]          Map data should show edges only\n"
     "    --verbose [-v]       Increase logging level\n"
 
     "\nExamples:\n"
-    "\n    \33[90m# Dump ActI from Normal mode for seed 1122334 \033[0m\n"
-    "    d2-map.exe /home/diablo2 --seed 1122334 --difficulty 0 --act 0\n"
-    "\n    \33[90m# Dump all acts from Hell mode for seed 1122334 \033[0m\n"
+    "\n    \33[90m# Dump Map1 from Hell Diff for seed 1234 \033[0m\n"
+    "    d2-map.exe \"E:/Dev/d2-mapserver/game\" --seed 12345 --difficulty 2 --map 1 --edge --output-folder C:/Temp\n"
+    "\n    \33[90m# Dump all maps from Hell mode for seed 1122334 \033[0m\n"
     "    d2-map.exe /home/diablo2 --seed 1122334 --difficulty 2\n";
 
 
@@ -53,12 +54,12 @@ void dump_info(unsigned int seed, int difficulty, int actId, int mapId) {
 }
 
 
-void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, char* argFolder) {
+void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, int edge, char* argFolder) {
     int64_t totalTime = currentTimeMillis();
     int mapCount = 0;
     if (mapId > -1) {
         int64_t startTime = currentTimeMillis();
-        int res = d2_dump_map(seed, difficulty, mapId, argFolder);
+        int res = d2_dump_map(seed, difficulty, mapId, edge, argFolder);
         if (res == 0) mapCount ++;
         int64_t duration = currentTimeMillis() - startTime;
         log_debug("Map:Generation", lk_ui("seed", seed), lk_i("difficulty", difficulty), lk_i("mapId", mapId), lk_i("duration", duration));
@@ -68,7 +69,7 @@ void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, char* ar
             if (actId > -1 && get_act(mapId) != actId) continue;
 
             int64_t startTime = currentTimeMillis();
-            int res = d2_dump_map(seed, difficulty, mapId, argFolder);
+            int res = d2_dump_map(seed, difficulty, mapId, edge, argFolder);
             if (res == 0) mapCount ++;
             if (res == 1) continue; // Failed to generate the map
 
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
     int argDifficulty = 0;
     int argActId = -1;
     int foundArgs = 0;
+    int edge = 0;
     char *argFolder;
     argFolder = "";
     for (int i = 1; i < argc; i++) {
@@ -126,6 +128,10 @@ int main(int argc, char *argv[]) {
         } else if (starts_with(arg, "--verbose") || starts_with(arg, "-v")) {
             log_debug("Cli:Arg", lk_b("verbose", true));
             log_level(LOG_TRACE);
+        } else if (starts_with(arg, "--edge") || starts_with(arg, "-w")) {
+            log_debug("Cli:Arg", lk_b("edge", true));
+            edge = 1;
+            foundArgs ++;
         } else {
             gameFolder = arg;
             log_debug("Cli:Arg", lk_s("game", gameFolder));
@@ -151,9 +157,9 @@ int main(int argc, char *argv[]) {
 
     /** Seed/Diff has been passed in just generate the map that is required */
     if (foundArgs > 0) {
-        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId, argFolder);
-        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1, argFolder);
-        else dump_maps(argSeed, argDifficulty, -1, -1, argFolder);
+        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId, edge, argFolder);
+        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1, edge, argFolder);
+        else dump_maps(argSeed, argDifficulty, -1, -1, edge, argFolder);
         return 0;
     }
 
@@ -169,7 +175,7 @@ int main(int argc, char *argv[]) {
         if (starts_with(buffer, COMMAND_EXIT) == 1) return 0;
 
         if (starts_with(buffer, COMMAND_MAP) == 1) {
-            dump_maps(argSeed, argDifficulty, argActId, argMapId, argFolder);
+            dump_maps(argSeed, argDifficulty, argActId, argMapId, edge, argFolder);
             argActId = -1;
             argMapId = -1;
             json_start();
