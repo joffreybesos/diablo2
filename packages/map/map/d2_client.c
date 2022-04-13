@@ -472,6 +472,73 @@ void dump_map_collision_edge(int width, int height) {
     }
 }
 
+void dump_map_collision_bitmap_edge(int width, int height, char* bitmapFilename) {
+    int h = map_max_y() + 1;
+    int w = map_max_x() + 1;
+
+    FILE *f;
+    unsigned char *img = NULL;
+    int filesize = 54 + 3*w*h;  //w is your image width, h is image height, both int
+    if( img )
+        free( img );
+    img = (unsigned char *)malloc(3*w*h);
+    memset(img,0,sizeof(img));
+    int x;
+    int y;
+    int r;
+    int g;
+    int b;
+
+    for(int i=0; i< w; i++)
+    {
+        for(int j=0; j< h; j++)
+        {
+            
+            x=i; y=(h-1)-j;
+            int edgeVal = checkSurroungPixels(x, y, h, w);
+            if (edgeVal == 1) {
+                img[(x+y*w)*3+2] = (unsigned char)(196);
+                img[(x+y*w)*3+1] = (unsigned char)(196);
+                img[(x+y*w)*3+0] = (unsigned char)(196);
+            } else {
+                img[(x+y*w)*3+2] = (unsigned char)(0);
+                img[(x+y*w)*3+1] = (unsigned char)(0);
+                img[(x+y*w)*3+0] = (unsigned char)(0);
+            }
+        }
+    }
+
+    unsigned char bmpfileheader[14] = {'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0};
+    unsigned char bmpinfoheader[40] = {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0};
+    unsigned char bmppad[3] = {0,0,0};
+
+    bmpfileheader[ 2] = (unsigned char)(filesize    );
+    bmpfileheader[ 3] = (unsigned char)(filesize>> 8);
+    bmpfileheader[ 4] = (unsigned char)(filesize>>16);
+    bmpfileheader[ 5] = (unsigned char)(filesize>>24);
+
+    bmpinfoheader[ 4] = (unsigned char)(       w    );
+    bmpinfoheader[ 5] = (unsigned char)(       w>> 8);
+    bmpinfoheader[ 6] = (unsigned char)(       w>>16);
+    bmpinfoheader[ 7] = (unsigned char)(       w>>24);
+    bmpinfoheader[ 8] = (unsigned char)(       h    );
+    bmpinfoheader[ 9] = (unsigned char)(       h>> 8);
+    bmpinfoheader[10] = (unsigned char)(       h>>16);
+    bmpinfoheader[11] = (unsigned char)(       h>>24);
+
+    f = fopen(bitmapFilename,"wb");
+    fwrite(bmpfileheader,1,14,f);
+    fwrite(bmpinfoheader,1,40,f);
+    for(int i=0; i<h; i++)
+    {
+        fwrite(img+(w*(h-i-1)*3),3,w,f);
+        fwrite(bmppad,1,(4-(w*3)%4)%4,f);
+    }
+    fclose(f);
+
+}
+
+
 /** Get the correct Act for a level */
 int get_act(int levelCode) {
     if (levelCode < 40) return 0;
@@ -533,14 +600,17 @@ int d2_dump_map(int seed, int difficulty, int levelCode, int edge, char* argFold
     // Start JSON DUMP
     FILE *fp;
     char* filename;
+    char bmpfilename[1024];
     if (strlen(argFolder) >0) {
         char str[1024];
         strcpy(str, argFolder);
         sprintf(filename, "%s/%i_%i_%i.json", str, seed, difficulty, levelCode);
         fprintf(stdout, "Creating file %s\n", filename);
+
+        sprintf(bmpfilename, "%s/%i_%i_%i.bmp", str, seed, difficulty, levelCode);
+        fprintf(stdout, "Creating bmp file %s\n", bmpfilename);
         fp = fopen(filename, "w+");
         json_start(fp);
-        
     } else {
         json_start();
     }
@@ -578,6 +648,9 @@ int d2_dump_map(int seed, int difficulty, int levelCode, int edge, char* argFold
         dump_map_collision_edge(mapWidth, mapHeight);
     } else {
         dump_map_collision(mapWidth, mapHeight);
+    }
+    if (strlen(argFolder) >0) {
+        dump_map_collision_bitmap_edge(mapWidth, mapHeight, bmpfilename);
     }
     json_array_end();
     json_end();
