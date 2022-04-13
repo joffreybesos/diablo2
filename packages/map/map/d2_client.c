@@ -422,7 +422,7 @@ int get_act(int levelCode) {
     return -1;
 }
 
-int d2_dump_map(int seed, int difficulty, int levelCode) {
+int d2_dump_map(int seed, int difficulty, int levelCode, char* argFolder) {
     LevelTxt *levelData = d2common_get_level_text(gameVersion, levelCode); 
     if (!levelData) return 1;
 
@@ -471,7 +471,21 @@ int d2_dump_map(int seed, int difficulty, int levelCode) {
     map_reset();
 
     // Start JSON DUMP
-    json_start();
+    FILE *fp;
+    char* filename;
+    if (strlen(argFolder) >0) {
+        char str[1024];
+        strcpy(str, argFolder);
+        sprintf(filename, "%s/%i_%i_%i.json", str, seed, difficulty, levelCode);
+        fprintf(stdout, "Creating file %s\n", filename);
+        fp = fopen(filename, "w+");
+        json_start(fp);
+        
+    } else {
+        json_start();
+    }
+    
+    
     json_key_value("type", "map");
     json_key_value("id", levelCode);
     json_key_value("name", levelName);

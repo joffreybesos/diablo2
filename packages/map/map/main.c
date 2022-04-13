@@ -31,6 +31,7 @@ char *CliUsage = "\nUsage:\n"
     "    --difficulty [-d]    Game Difficulty [0: Normal, 1: Nightmare, 2:Hell]\n"
     "    --act [-a]           Dump a specific act [0: ActI, 1:ActII, 2: ActIII, 3: ActIV, 4: Act5]\n"
     "    --map [-m]           Dump a specific Map [0: Rogue Encampent ...]\n"
+    "    --output-folder [-o] Dump JSON files to specific folder\n"
     "    --verbose [-v]       Increase logging level\n"
 
     "\nExamples:\n"
@@ -52,12 +53,12 @@ void dump_info(unsigned int seed, int difficulty, int actId, int mapId) {
 }
 
 
-void dump_maps(unsigned int seed, int difficulty, int actId, int mapId) {
+void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, char* argFolder) {
     int64_t totalTime = currentTimeMillis();
     int mapCount = 0;
     if (mapId > -1) {
         int64_t startTime = currentTimeMillis();
-        int res = d2_dump_map(seed, difficulty, mapId);
+        int res = d2_dump_map(seed, difficulty, mapId, argFolder);
         if (res == 0) mapCount ++;
         int64_t duration = currentTimeMillis() - startTime;
         log_debug("Map:Generation", lk_ui("seed", seed), lk_i("difficulty", difficulty), lk_i("mapId", mapId), lk_i("duration", duration));
@@ -67,7 +68,7 @@ void dump_maps(unsigned int seed, int difficulty, int actId, int mapId) {
             if (actId > -1 && get_act(mapId) != actId) continue;
 
             int64_t startTime = currentTimeMillis();
-            int res = d2_dump_map(seed, difficulty, mapId);
+            int res = d2_dump_map(seed, difficulty, mapId, argFolder);
             if (res == 0) mapCount ++;
             if (res == 1) continue; // Failed to generate the map
 
@@ -98,6 +99,8 @@ int main(int argc, char *argv[]) {
     int argDifficulty = 0;
     int argActId = -1;
     int foundArgs = 0;
+    char *argFolder;
+    argFolder = "";
     for (int i = 1; i < argc; i++) {
         char* arg = argv[i];
         if (starts_with(arg, "--seed") || starts_with(arg, "-s")) {
@@ -115,6 +118,10 @@ int main(int argc, char *argv[]) {
         } else if (starts_with(arg, "--act") || starts_with(arg, "-a")) {
             argActId = atoi(argv[++i]);
             log_debug("Cli:Arg", lk_i("actId", argActId));
+            foundArgs ++;
+        } else if (starts_with(arg, "--output-folder") || starts_with(arg, "-o")) {
+            argFolder = argv[++i];
+            log_debug("Cli:Arg", lk_s("actId", argFolder));
             foundArgs ++;
         } else if (starts_with(arg, "--verbose") || starts_with(arg, "-v")) {
             log_debug("Cli:Arg", lk_b("verbose", true));
@@ -144,9 +151,9 @@ int main(int argc, char *argv[]) {
 
     /** Seed/Diff has been passed in just generate the map that is required */
     if (foundArgs > 0) {
-        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId);
-        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1);
-        else dump_maps(argSeed, argDifficulty, -1, -1);
+        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId, argFolder);
+        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1, argFolder);
+        else dump_maps(argSeed, argDifficulty, -1, -1, argFolder);
         return 0;
     }
 
@@ -162,7 +169,7 @@ int main(int argc, char *argv[]) {
         if (starts_with(buffer, COMMAND_EXIT) == 1) return 0;
 
         if (starts_with(buffer, COMMAND_MAP) == 1) {
-            dump_maps(argSeed, argDifficulty, argActId, argMapId);
+            dump_maps(argSeed, argDifficulty, argActId, argMapId, argFolder);
             argActId = -1;
             argMapId = -1;
             json_start();
