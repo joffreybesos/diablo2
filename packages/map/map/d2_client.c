@@ -392,7 +392,8 @@ void dump_map_collision(int width, int height) {
         char last = 'X';
         int count = 0;
         int outputCount = 0;
-        for (int x = 0; x < width; x++) {
+        int actualCount = 0;
+        for (int x = 0; x < maxX; x++) {
             char mapVal = map_value(x, y) % 2 ? 'X' : ' ';
             if (mapVal == last) {
                 count++;
@@ -402,10 +403,16 @@ void dump_map_collision(int width, int height) {
             if (outputCount == 0 && last == ' ') fprintf(stderr, "-1, ");
 
             json_value(count);
-
+            actualCount++;
             outputCount++;
             count = 1;
             last = mapVal;
+        }
+
+        if (actualCount < maxX) {
+            if (actualCount > 0) {
+                json_value(width - actualCount);
+            }
         }
 
         // if (maxX < width) 
