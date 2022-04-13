@@ -68,19 +68,19 @@ void d2_game_init_pod() {
 
     log_trace("Init:Dll", lk_s("dll", "Fog.dll"));
     FOG_10021("D2");
-    FOG_10019(DIABLO_2, (DWORD)ExceptionHandler, DIABLO_2_VERSION, 1);
+    // FOG_10019(DIABLO_2, (DWORD)ExceptionHandler, DIABLO_2_VERSION, 1);
     FOG_10101(1, 0);
     FOG_10089(1);
     if (!FOG_10218()) {
         log_error("Init:Dll:Failed", lk_s("dll", "Fog.dll"));
-        ExitProcess(1);
+        // ExitProcess(1);
     }
     log_debug("Init:Dll:Done", lk_s("dll", "Fog.dll"));
 
     log_trace("Init:Dll", lk_s("dll", "D2Win.dll"));
     if (!D2WIN_10174() || !D2WIN_10072((DWORD)NULL, (DWORD)NULL, (DWORD)NULL, &D2Client)) {
         log_error("Init:Dll:Failed", lk_s("dll", "D2Win.dll"));
-        ExitProcess(1);
+        // ExitProcess(1);
     }
     log_debug("Init:Dll:Done", lk_s("dll", "D2Win.dll"));
 
@@ -116,20 +116,20 @@ void d2_game_init_pd2() {
 
     log_trace("Init:Dll", lk_s("dll", "Fog.dll"));
     FOG_10021("D2");
-    FOG_10019(DIABLO_2, (DWORD)ExceptionHandler, DIABLO_2_VERSION, 1);
+    // FOG_10019(DIABLO_2, (DWORD)ExceptionHandler, DIABLO_2_VERSION, 1);
     FOG_10101(1, 0);
     FOG_10089(1);
 
     if (!FOG_10218()) {
         log_error("Init:Dll:Failed", lk_s("dll", "Fog.dll"));
-        ExitProcess(1);
+        // ExitProcess(1);
     }
     log_debug("Init:Dll:Done", lk_s("dll", "Fog.dll"));
 
     log_trace("Init:Dll", lk_s("dll", "D2Win.dll"));
     if (!D2WIN_10086() || !D2WIN_10005((DWORD)NULL, (DWORD)NULL, (DWORD)NULL, &D2Client)) {
         log_error("InitFailed", lk_s("dll", "D2Win.dll"));
-        ExitProcess(1);
+        // ExitProcess(1);
     }
     log_debug("Init:Dll:Done", lk_s("dll", "D2Win.dll"));
 
