@@ -33,6 +33,7 @@ char *CliUsage = "\nUsage:\n"
     "    --map [-m]           Dump a specific Map [0: Rogue Encampent ...]\n"
     "    --output-folder [-o] Dump JSON files to specific folder\n"
     "    --edge [-e]          Map data should show edges only\n"
+    "    --nomapjson [-e]     Don't put map data in JSON (still includes objects etc)\n"
     "    --verbose [-v]       Increase logging level\n"
 
     "\nExamples:\n"
@@ -54,12 +55,12 @@ void dump_info(unsigned int seed, int difficulty, int actId, int mapId) {
 }
 
 
-void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, int edge, char* argFolder) {
+void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, int edge, int nomapjson, char* argFolder) {
     int64_t totalTime = currentTimeMillis();
     int mapCount = 0;
     if (mapId > -1) {
         int64_t startTime = currentTimeMillis();
-        int res = d2_dump_map(seed, difficulty, mapId, edge, argFolder);
+        int res = d2_dump_map(seed, difficulty, mapId, edge, nomapjson, argFolder);
         if (res == 0) mapCount ++;
         int64_t duration = currentTimeMillis() - startTime;
         log_debug("Map:Generation", lk_ui("seed", seed), lk_i("difficulty", difficulty), lk_i("mapId", mapId), lk_i("duration", duration));
@@ -69,7 +70,7 @@ void dump_maps(unsigned int seed, int difficulty, int actId, int mapId, int edge
             if (actId > -1 && get_act(mapId) != actId) continue;
 
             int64_t startTime = currentTimeMillis();
-            int res = d2_dump_map(seed, difficulty, mapId, edge, argFolder);
+            int res = d2_dump_map(seed, difficulty, mapId, edge, nomapjson, argFolder);
             if (res == 0) mapCount ++;
             if (res == 1) continue; // Failed to generate the map
 
@@ -101,6 +102,7 @@ int main(int argc, char *argv[]) {
     int argActId = -1;
     int foundArgs = 0;
     int edge = 0;
+    int nomapjson = 0;
     char *argFolder;
     argFolder = "";
     for (int i = 1; i < argc; i++) {
@@ -132,6 +134,10 @@ int main(int argc, char *argv[]) {
             log_debug("Cli:Arg", lk_b("edge", true));
             edge = 1;
             foundArgs ++;
+        } else if (starts_with(arg, "--nomapjson") || starts_with(arg, "-n")) {
+            log_debug("Cli:Arg", lk_b("nomapjson", true));
+            nomapjson = 1;
+            foundArgs ++;
         } else {
             gameFolder = arg;
             log_debug("Cli:Arg", lk_s("game", gameFolder));
@@ -157,9 +163,9 @@ int main(int argc, char *argv[]) {
 
     /** Seed/Diff has been passed in just generate the map that is required */
     if (foundArgs > 0) {
-        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId, edge, argFolder);
-        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1, edge, argFolder);
-        else dump_maps(argSeed, argDifficulty, -1, -1, edge, argFolder);
+        if (argMapId > -1) dump_maps(argSeed, argDifficulty, -1, argMapId, edge, nomapjson, argFolder);
+        else if (argActId > -1) dump_maps(argSeed, argDifficulty, argActId, -1, edge, nomapjson, argFolder);
+        else dump_maps(argSeed, argDifficulty, -1, -1, edge, nomapjson, argFolder);
         return 0;
     }
 
@@ -175,7 +181,7 @@ int main(int argc, char *argv[]) {
         if (starts_with(buffer, COMMAND_EXIT) == 1) return 0;
 
         if (starts_with(buffer, COMMAND_MAP) == 1) {
-            dump_maps(argSeed, argDifficulty, argActId, argMapId, edge, argFolder);
+            dump_maps(argSeed, argDifficulty, argActId, argMapId, edge, nomapjson, argFolder);
             argActId = -1;
             argMapId = -1;
             json_start();
